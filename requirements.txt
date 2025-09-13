@@ -1,5 +1,8 @@
 streamlit==1.27.2
-pandas==1.5.3
+pandas>=2.3.0
+numpy>=1.27.0
 matplotlib==3.7.1
 plotly==5.15.0
 joblib==1.2.0
+wikipedia
+gTTS
