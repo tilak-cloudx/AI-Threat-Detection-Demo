@@ -1,60 +1,67 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
+import wikipedia
+from gtts import gTTS
+import tempfile
+import base64
 from ml_model import predict_threat
-from phishing import check_url
-from database import init_db, add_threat, get_threats
-from utils import generate_fake_traffic
 
-st.set_page_config(page_title="AI Threat Detection", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="AI Threat Detection Chatbot", page_icon="🤖", layout="centered")
 
-# Initialize database
-init_db()
+st.title("🤖 AI Threat Detection Chatbot")
 
-st.title("🛡️ AI-Powered Threat Detection & Prevention")
+# --- Sidebar ---
+with st.sidebar:
+    st.header("Settings")
+    st.write("Configure the chatbot here.")
 
-# Sidebar Navigation
-menu = st.sidebar.radio("Navigate", ["Dashboard", "Phishing Detector", "Simulate Traffic", "Threat Logs"])
+# --- Chat input ---
+st.markdown("""
+    <style>
+    .chat-input-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    .chat-icons {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 20px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Dashboard
-if menu == "Dashboard":
-    st.subheader("📊 Threat Overview")
-    threats = get_threats()
-    df = pd.DataFrame(threats, columns=["ID", "IP", "Protocol", "Port", "Status", "Timestamp"])
-    if not df.empty:
-        fig = px.pie(df, names="Status", title="Threat Distribution")
-        st.plotly_chart(fig)
-        st.dataframe(df)
-    else:
-        st.info("No threats detected yet.")
+# --- Input area ---
+user_input = st.text_input("Ask me anything about Wikipedia or Threats", placeholder="Type here...")
 
-# Phishing Detector
-elif menu == "Phishing Detector":
-    st.subheader("🕵️ Phishing URL Checker")
-    url = st.text_input("Enter a URL:")
-    if st.button("Check"):
-        result = check_url(url)
-        st.write(f"Result: **{result}**")
+if user_input:
+    st.write(f"**You:** {user_input}")
+    
+    # --- Try ML prediction ---
+    try:
+        # Dummy example: expecting numeric features in a dict
+        features = {"feature1": 0.5, "feature2": 1.2}  # Replace with actual feature extraction
+        prediction = predict_threat(features)
+        st.write(f"**ML Model Prediction:** {prediction}")
+    except Exception as e:
+        st.write(f"ML Prediction Error: {e}")
 
-# Simulate Traffic
-elif menu == "Simulate Traffic":
-    st.subheader("🚦 Simulate Network Traffic")
-    traffic = generate_fake_traffic()
-    st.json(traffic)
-
-    if st.button("Run Detection"):
-        result = predict_threat({
-            "ip": traffic["ip"],
-            "protocol": 1 if traffic["protocol"]=="TCP" else 2,
-            "port": traffic["port"],
-            "packet_size": traffic["packet_size"]
-        })
-        add_threat(traffic["ip"], traffic["protocol"], traffic["port"], result)
-        st.success(f"AI Prediction: {result}")
-
-# Threat Logs
-elif menu == "Threat Logs":
-    st.subheader("📋 Threat Logs")
-    threats = get_threats()
-    df = pd.DataFrame(threats, columns=["ID", "IP", "Protocol", "Port", "Status", "Timestamp"])
-    st.dataframe(df)
+    # --- Wikipedia query ---
+    try:
+        summary = wikipedia.summary(user_input, sentences=2)
+        st.write(f"**Wikipedia:** {summary}")
+    except wikipedia.exceptions.DisambiguationError as e:
+        st.write(f"Disambiguation Error: {e}")
+    except wikipedia.exceptions.PageError:
+        st.write("Page not found.")
+    
+    # --- Text-to-speech ---
+    try:
+        tts = gTTS(summary)
+        tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+        tts.save(tmp_file.name)
+        audio_file = open(tmp_file.name, "rb")
+        st.audio(audio_file.read(), format="audio/mp3")
+    except Exception as e:
+        st.write(f"TTS Error: {e}")
