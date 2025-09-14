@@ -1,22 +1,12 @@
+# ml_model.py
+import os
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
 import joblib
 
-# Small demo dataset
-data = {
-    "protocol": [1, 2, 1, 2],
-    "port": [80, 22, 443, 8080],
-    "packet_size": [200, 1500, 1200, 300],
-    "label": ["Normal", "Threat", "Threat", "Normal"]
-}
-df = pd.DataFrame(data)
+model_path = os.path.join(os.path.dirname(__file__), "model", "trained_model.pkl")
+model = joblib.load(model_path)
 
-X = df.drop("label", axis=1)
-y = df["label"]
-
-model = RandomForestClassifier()
-model.fit(X, y)
-
-joblib.dump(model, "model/trained_model.pkl")
-print("✅ Model trained and saved")
-
+def predict_threat(features: dict):
+    df = pd.DataFrame([features])
+    prediction = model.predict(df)[0]
+    return prediction
