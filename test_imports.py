@@ -1,13 +1,23 @@
-# Quick sanity check: run `python test_imports.py` after pip install
-# If this runs without errors, your environment is good.
+"""
+Quick sanity check for deployment.
 
-import streamlit
-import pandas
-import numpy
-import matplotlib
-import plotly
-import joblib
-import wikipedia
-import gtts
+Run this with: python test_imports.py
+If it runs without errors, your environment is healthy.
+"""
 
-print("✅ All libraries imported successfully!")
+try:
+    import streamlit
+    import pandas
+    import numpy
+    import matplotlib
+    import plotly
+    import joblib
+    import wikipedia
+    import gtts
+    import altair
+
+    print("✅ All libraries imported successfully!")
+
+except Exception as e:
+    print("❌ Import error:", e)
+    raise
